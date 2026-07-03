@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymVibes - Fitness Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gymDark: '#0B0F19',
+                        gymCard: '#151F32',
+                        gymNeon: '#00F5D4',
+                        gymAccent: '#7B2CBF'
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gymDark text-gray-100 font-sans antialiased min-h-screen">
+
+    <header class="border-b border-gray-800 bg-gymCard sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-dumbbell text-gymNeon text-2xl animate-pulse"></i>
+                <span class="text-xl font-black tracking-wider text-white">GYM<span class="text-gymNeon">VIBES</span></span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-gray-800 px-3 py-1.5 rounded-full flex items-center space-x-2 border border-yellow-500/30">
+                    <i class="fa-solid fa-trophy text-yellow-400"></i>
+                    <span class="font-bold text-sm" id="streak-display">0 Kunlik Streak</span>
+                </div>
+                <div>
+                    <button id="btn">🌙 Dark </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1 space-y-8">
+            
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+                    <i class="fa-solid fa-chart-pie text-gymNeon"></i> Dashboard Statistika
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gymDark/50 p-4 rounded-xl border border-gray-800">
+                        <p class="text-xs text-gray-400 uppercase">Jami Workouts</p>
+                        <p class="text-2xl font-black text-gymNeon mt-1" id="stat-total-workouts">0</p>
+                    </div>
+                    <div class="bg-gymDark/50 p-4 rounded-xl border border-gray-800">
+                        <p class="text-xs text-gray-400 uppercase">Mashqlar Soni</p>
+                        <p class="text-2xl font-black text-white mt-1" id="stat-total-exercises">0</p>
+                    </div>
+                    <div class="bg-gymDark/50 p-4 rounded-xl border border-gray-800 col-span-2">
+                        <p class="text-xs text-gray-400 uppercase">Jami Hajm (Total Volume)</p>
+                        <p class="text-xl font-black text-purple-400 mt-1" id="stat-total-volume">0 kg</p>
+                    </div>
+                    <div class="bg-gymDark/50 p-4 rounded-xl border border-gray-800 col-span-2">
+                        <p class="text-xs text-gray-400 uppercase">O'rtacha Davomiylik</p>
+                        <p class="text-lg font-bold text-gray-200 mt-1" id="stat-avg-duration">0 minut</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+                    <i class="fa-solid fa-award text-yellow-400"></i> Shaxsiy Rekordlar (PR)
+                </h2>
+                <div id="pr-container" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
+            </section>
+
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+                    <i class="fa-solid fa-bullseye text-red-400"></i> Mushaklar Nisbati
+                </h2>
+                <div class="w-full h-64 flex items-center justify-center">
+                    <canvas id="muscleChart"></canvas>
+                </div>
+            </section>
+
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+                    <i class="fa-solid fa-flag text-blue-400"></i> Maqsadlar (Goals)
+                </h2>
+                <form id="goal-form" class="space-y-3 mb-4">
+                    <input type="text" id="goal-title" placeholder="Masalan: Bench Press 100kg" class="w-full bg-gymDark border border-gray-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-gymNeon" required>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="goal-target" placeholder="Target kg" class="bg-gymDark border border-gray-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-gymNeon" required>
+                        <input type="date" id="goal-date" class="bg-gymDark border border-gray-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-gymNeon" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 rounded-xl transition">Maqsad Qo'shish</button>
+                </form>
+                <div id="goals-container" class="space-y-3"></div>
+            </section>
+
+        </div>
+
+        <div class="lg:col-span-2 space-y-8">
+            
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                    <i class="fa-solid fa-calendar-plus text-gymNeon"></i> Yangi Workout Log Yaratish
+                </h2>
+                <form id="workout-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Sana</label>
+                            <input type="date" id="workout-date" class="w-full bg-gymDark border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gymNeon" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Davomiyligi (Minut)</label>
+                            <input type="number" id="workout-duration" min="1" placeholder="45" class="w-full bg-gymDark border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gymNeon" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Mashq Shiddati (Intensity)</label>
+                            <select id="workout-intensity" class="w-full bg-gymDark border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gymNeon">
+                                <option value="Low">Past (Low)</option>
+                                <option value="Medium" selected>O'rtacha (Medium)</option>
+                                <option value="High">Yuqori (High)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-gymDark/40 p-4 rounded-xl border border-gray-800/80 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Mashqni Tanlang</label>
+                                <select id="workout-exercise-select" class="w-full bg-gymDark border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gymNeon" required>
+                                    <option value="">Yuklanmoqda...</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Sets</label>
+                                    <input type="number" id="workout-sets" min="1" placeholder="4" class="w-full bg-gymDark border border-gray-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gymNeon" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Reps</label>
+                                    <input type="number" id="workout-reps" min="1" placeholder="10" class="w-full bg-gymDark border border-gray-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gymNeon" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1 font-semibold">Vazn (kg)</label>
+                                    <input type="number" id="workout-weight" min="0" placeholder="60" class="w-full bg-gymDark border border-gray-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gymNeon">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gymNeon hover:bg-teal-400 text-gymDark font-black py-3 rounded-xl transition uppercase tracking-wider shadow-lg shadow-gymNeon/10">
+                        <i class="fa-solid fa-plus mr-2"></i> Create Workout Log
+                    </button>
+                </form>
+            </section>
+
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <h2 class="text-xl font-bold flex items-center gap-2 text-white">
+                        <i class="fa-solid fa-database text-gymNeon"></i> Exercise Database (API)
+                    </h2>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <input type="text" id="search-input" placeholder="Mashq qidirish..." class="bg-gymDark border border-gray-700 rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none focus:border-gymNeon flex-grow md:w-44">
+                        <select id="filter-muscle" class="bg-gymDark border border-gray-700 rounded-xl px-2 py-1.5 text-sm text-white focus:outline-none focus:border-gymNeon">
+                            <option value="">Barcha mushaklar</option>
+                            <option value="Chest">Chest</option>
+                            <option value="Back">Back</option>
+                            <option value="Legs">Legs</option>
+                            <option value="Shoulders">Shoulders</option>
+                            <option value="Arms">Arms</option>
+                            <option value="Cardio">Cardio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gymDark/60 rounded-xl p-3 border border-gray-800 max-h-72 overflow-y-auto space-y-2" id="api-exercises-list"></div>
+                    <div class="bg-gymDark/40 rounded-xl p-4 border border-gray-800 flex flex-col justify-between" id="exercise-details-panel"></div>
+                </div>
+            </section>
+
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+                    <i class="fa-solid fa-chart-line text-purple-400"></i> Kuch Trendi (30 Kunlik Maksimal Vazn)
+                </h2>
+                <div class="w-full h-64">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </section>
+
+            <section class="bg-gymCard p-6 rounded-2xl border border-gray-800 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2 text-white">
+                        <i class="fa-solid fa-history text-gymNeon"></i> Workout Logs tarixi
+                    </h2>
+                    <select id="sort-logs" class="bg-gymDark border border-gray-700 rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none focus:border-gymNeon">
+                        <option value="desc">Yangi sanalar birinchi</option>
+                        <option value="asc">Eski sanalar birinchi</option>
+                    </select>
+                </div>
+                <div id="workout-logs-container" class="space-y-4"></div>
+            </section>
+
+        </div>
+    </main>
+</body>
+</html>
